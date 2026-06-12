@@ -60,8 +60,8 @@ async def tool_execution_node(state: AgentState, *, tool_service: ToolService) -
     if not tool_calls:
         return {}
 
-    # 安全限制：单轮最多执行 2 个工具调用，防止 LLM 疯狂调用
-    MAX_CALLS_PER_ROUND = 2
+    # 安全限制：单轮最多执行 3 个工具调用，防止 LLM 疯狂调用
+    MAX_CALLS_PER_ROUND = 3
     if len(tool_calls) > MAX_CALLS_PER_ROUND:
         logger.warning(f"[tool_execution] 工具调用过多({len(tool_calls)}个)，截断为{MAX_CALLS_PER_ROUND}个")
         tool_calls = tool_calls[:MAX_CALLS_PER_ROUND]

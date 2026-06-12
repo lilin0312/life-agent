@@ -149,7 +149,10 @@ class ToolService:
 
             # 安全操作 或 已确认 → 直接执行
             logger.info(f"执行工具: {tool_name}({args})")
+            import asyncio
             result = handler(args, user_id)
+            if asyncio.iscoroutine(result):
+                result = await result
             logger.info(f"工具结果: {str(result)[:200]}")
             return {"content": str(result), "need_confirm": False}
 
@@ -305,21 +308,21 @@ class ToolService:
 
     # ==================== 记忆 ====================
 
-    def _tool_save_memory(self, args: dict, user_id: str = "") -> str:
+    async def _tool_save_memory(self, args: dict, user_id: str = "") -> str:
         if not self.memory_service:
             return "记忆服务不可用"
         key = args.get("key", "")
         content = args.get("content", "")
         if not key or not content:
             return "请提供记忆标签和内容"
-        self.memory_service.save_memory(user_id, key, content)
+        await self.memory_service.save_memory(user_id, key, content)
         return f"已记住: **{key}** → {content}"
 
-    def _tool_search_memory(self, args: dict, user_id: str = "") -> str:
+    async def _tool_search_memory(self, args: dict, user_id: str = "") -> str:
         if not self.memory_service:
             return "记忆服务不可用"
         keyword = args.get("keyword", args.get("query", ""))
-        results = self.memory_service.search_memories(user_id, keyword)
+        results = await self.memory_service.search_memories(user_id, keyword)
         if not results:
             return "未找到相关记忆"
         return "\n".join(results)

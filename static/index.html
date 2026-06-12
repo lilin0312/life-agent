@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活管家 AI</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">我是生活管家夏密</div>
+                <button class="btn-icon" onclick="toggleSidebar()" title="收起侧栏">☰</button>
+            </div>
+            <button class="btn-new-chat" onclick="newChat()">+ 新建对话</button>
+            <div class="session-list" id="sessionList"></div>
+            <div class="sidebar-footer">
+                <div class="user-section">
+                    <span class="user-icon">👤</span>
+                    <input type="text" id="userId" placeholder="输入用户名" value="user_001" />
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主聊天区 -->
+        <main class="chat-area">
+            <!-- 顶部栏 -->
+            <header class="chat-header">
+                <button class="btn-icon mobile-only" onclick="toggleSidebar()">☰</button>
+                <h1>生活管家 AI</h1>
+                <div class="header-actions">
+                    <label class="btn-upload" title="上传图片或文件给AI分析">
+                        🖼️ 识别图片
+                        <input type="file" id="imageInput" accept="image/*,.pdf,.txt,.csv,.json,.md" hidden />
+                    </label>
+                    <label class="btn-upload" title="上传文档到知识库">
+                        📎 文档入库
+                        <input type="file" id="fileInput" accept=".txt,.md,.csv,.json,.log" hidden />
+                    </label>
+                </div>
+            </header>
+
+            <!-- 消息区域 -->
+            <div class="messages" id="messages">
+                <div class="welcome-message">
+                    <div class="welcome-icon">🏠</div>
+                    <h2>你好！我是你的生活管家</h2>
+                    <p>我可以帮你：日程规划、收支计算、旅行方案、文档问答、生活建议</p>
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="sendQuick('帮我算一下每月存3000，一年后能存多少')">💰 收支计算</button>
+                        <button class="quick-btn" onclick="sendQuick('现在几点了？')">🕐 时间查询</button>
+                        <button class="quick-btn" onclick="sendQuick('帮我规划一个周末出游计划')">🗺️ 旅行方案</button>
+                        <button class="quick-btn" onclick="sendQuick('记住我喜欢吃辣')">🧠 记住偏好</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <!-- 图片预览条 -->
+                <div class="image-preview-bar" id="imagePreviewBar" style="display:none;">
+                    <img id="imagePreviewThumb" src="" alt="preview" />
+                    <span id="imagePreviewName">image.png</span>
+                    <button class="btn-remove-image" onclick="app.clearImage()">✕</button>
+                </div>
+                <div class="input-wrapper">
+                    <textarea
+                        id="messageInput"
+                        placeholder="输入你的问题..."
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                    ></textarea>
+                    <button class="btn-send" id="sendBtn" onclick="sendMessage()">
+                        <span class="send-icon">➤</span>
+                    </button>
+                </div>
+                <div class="input-hint">按 Enter 发送，Shift+Enter 换行</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 上传状态提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

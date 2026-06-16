@@ -12,6 +12,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="用户消息", min_length=1, max_length=2000)
     session_id: Optional[str] = Field(None, description="会话ID，不传则新建会话")
     image_base64: Optional[str] = Field(None, description="图片base64编码（含data:image前缀）")
+    voice_mode: bool = Field(False, description="语音通话模式，启用口语化回复")
 
 
 class ChatResponse(BaseModel):

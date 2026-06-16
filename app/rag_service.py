@@ -10,12 +10,48 @@ from typing import Optional
 from app.config import (
     UPLOAD_DIR, VECTOR_DB_DIR, CHUNK_SIZE,
     CHUNK_OVERLAP, RAG_TOP_K, LLM_API_KEY,
+    SILICONFLOW_API_KEY,
 )
 
 logger = logging.getLogger(__name__)
 
 
-# ==================== 轻量级 DashScope Embedding ====================
+# ==================== 轻量级 Embedding 实现 ====================
+
+class SiliconFlowEmbeddings:
+    """基于硅基流动的 Embedding（OpenAI 兼容 API）"""
+
+    def __init__(self, api_key: str, model: str = "BAAI/bge-large-zh-v1.5"):
+        self.api_key = api_key
+        self.model = model
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        import httpx
+        results = []
+        batch_size = 16
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            resp = httpx.post(
+                "https://api.siliconflow.cn/v1/embeddings",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={"model": self.model, "input": batch},
+                timeout=15,
+            )
+            data = resp.json()
+            if "data" in data:
+                for item in data["data"]:
+                    results.append(item["embedding"])
+            else:
+                raise RuntimeError(f"SiliconFlow embedding 失败: {data}")
+        return results
+
+    def embed_query(self, text: str) -> list[float]:
+        return self.embed_documents([text])[0]
+
+
 class DashScopeEmbeddings:
     """
     基于 DashScope Text Embedding API 的轻量 Embedding 实现
@@ -47,7 +83,7 @@ class DashScopeEmbeddings:
                     "input": {"texts": batch},
                     "parameters": {"dimension": self._dimension, "output_type": "floats"},
                 },
-                timeout=30,
+                timeout=8,
             )
             data = resp.json()
             if "output" in data and "embeddings" in data["output"]:
@@ -82,22 +118,31 @@ class RAGService:
         return self._initialized
 
     def _lazy_init(self):
-        """懒加载：首次使用时初始化（无需下载模型，秒级完成）"""
+        """懒加载：首次使用时初始化。优先硅基流动，DashScope 兜底"""
         if self._init_attempted:
             return
         self._init_attempted = True
 
-        if not LLM_API_KEY:
-            logger.warning("RAG: 未配置 API Key，文档检索不可用")
+        if not SILICONFLOW_API_KEY and not LLM_API_KEY:
+            logger.warning("RAG: 未配置任何 API Key，文档检索不可用")
             return
 
         try:
             from langchain_chroma import Chroma
 
-            self._embedding = DashScopeEmbeddings(
-                api_key=LLM_API_KEY,
-                model="text-embedding-v3",
-            )
+            # 优先硅基流动（key 已验证可用）
+            if SILICONFLOW_API_KEY:
+                self._embedding = SiliconFlowEmbeddings(
+                    api_key=SILICONFLOW_API_KEY,
+                    model="BAAI/bge-large-zh-v1.5",
+                )
+                logger.info("RAG Embedding: SiliconFlow (BAAI/bge-large-zh-v1.5)")
+            else:
+                self._embedding = DashScopeEmbeddings(
+                    api_key=LLM_API_KEY,
+                    model="text-embedding-v3",
+                )
+                logger.info("RAG Embedding: DashScope (text-embedding-v3)")
 
             self._vectorstore = Chroma(
                 collection_name="life_agent_docs",

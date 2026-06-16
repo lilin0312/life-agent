@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生活管家 AI屌炸天</title>
+    <title>屌炸天 // Terminal</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -11,11 +11,58 @@
         <!-- 侧边栏 -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo">我是生活管家屌炸天</div>
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 100 100" width="32" height="32">
+                        <defs>
+                            <linearGradient id="flameGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:#ff4500"/>
+                                <stop offset="40%" style="stop-color:#ff6a00"/>
+                                <stop offset="70%" style="stop-color:#00d4ff"/>
+                                <stop offset="100%" style="stop-color:#00ffcc"/>
+                            </linearGradient>
+                            <linearGradient id="petalGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:#cc2200"/>
+                                <stop offset="50%" style="stop-color:#ff4500"/>
+                                <stop offset="100%" style="stop-color:#ff8c00"/>
+                            </linearGradient>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- 外层花瓣（火莲5瓣）-->
+                        <g filter="url(#glow)">
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#petalGrad)" opacity="0.9"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#petalGrad)" opacity="0.9" transform="rotate(72 50 50)"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#petalGrad)" opacity="0.85" transform="rotate(144 50 50)"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#petalGrad)" opacity="0.85" transform="rotate(216 50 50)"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#petalGrad)" opacity="0.9" transform="rotate(288 50 50)"/>
+                        </g>
+                        <!-- 中心火焰 -->
+                        <path d="M50 25 C53 35, 58 40, 56 52 C54 58, 52 62, 50 65 C48 62, 46 58, 44 52 C42 40, 47 35, 50 25Z" fill="url(#flameGrad)" opacity="0.95"/>
+                        <!-- 中心亮点 -->
+                        <circle cx="50" cy="48" r="4" fill="#fff" opacity="0.7"/>
+                        <circle cx="50" cy="48" r="2" fill="#00ffcc" opacity="0.9"/>
+                    </svg>
+                    <span class="logo-text">屌炸天</span>
+                </div>
                 <button class="btn-icon" onclick="toggleSidebar()" title="收起侧栏">☰</button>
             </div>
-            <button class="btn-new-chat" onclick="newChat()">+ 新建对话</button>
+            <button class="btn-new-chat" onclick="newChat()">+ NEW SESSION</button>
             <div class="session-list" id="sessionList"></div>
+
+            <!-- 侧边栏工具区 -->
+            <div class="sidebar-tools">
+                <div class="tool-section-title">// MODULES</div>
+                <button class="sidebar-tool-btn" onclick="showPanel('memoryPanel')">🧠 记忆管理</button>
+                <button class="sidebar-tool-btn" onclick="showPanel('vectorPanel')">📊 向量知识库</button>
+                <button class="sidebar-tool-btn" onclick="showPanel('dbPanel')">💾 数据库概览</button>
+                <button class="sidebar-tool-btn" onclick="showPanel('imagePanel')">🎨 图片生成</button>
+            </div>
+
             <div class="sidebar-footer">
                 <div class="user-section">
                     <span class="user-icon">👤</span>
@@ -26,11 +73,38 @@
 
         <!-- 主聊天区 -->
         <main class="chat-area">
-            <!-- 顶部栏 -->
             <header class="chat-header">
                 <button class="btn-icon mobile-only" onclick="toggleSidebar()">☰</button>
-                <h1>生活管家屌炸天</h1>
+                <h1>
+                    <svg class="header-logo" viewBox="0 0 100 100" width="24" height="24">
+                        <defs>
+                            <linearGradient id="hFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:#ff4500"/>
+                                <stop offset="50%" style="stop-color:#ff6a00"/>
+                                <stop offset="100%" style="stop-color:#00d4ff"/>
+                            </linearGradient>
+                            <linearGradient id="hPetal" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:#cc2200"/>
+                                <stop offset="50%" style="stop-color:#ff4500"/>
+                                <stop offset="100%" style="stop-color:#ff8c00"/>
+                            </linearGradient>
+                        </defs>
+                        <g>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#hPetal)" opacity="0.85"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#hPetal)" opacity="0.85" transform="rotate(72 50 50)"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#hPetal)" opacity="0.8" transform="rotate(144 50 50)"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#hPetal)" opacity="0.8" transform="rotate(216 50 50)"/>
+                            <path d="M50 10 C55 25, 70 30, 65 50 C60 65, 55 70, 50 75 C45 70, 40 65, 35 50 C30 30, 45 25, 50 10Z" fill="url(#hPetal)" opacity="0.85" transform="rotate(288 50 50)"/>
+                        </g>
+                        <path d="M50 25 C53 35, 58 40, 56 52 C54 58, 52 62, 50 65 C48 62, 46 58, 44 52 C42 40, 47 35, 50 25Z" fill="url(#hFlame)" opacity="0.95"/>
+                        <circle cx="50" cy="48" r="3" fill="#fff" opacity="0.7"/>
+                    </svg>
+                    屌炸天 Terminal
+                </h1>
                 <div class="header-actions">
+                    <button class="btn-call" id="callBtn" onclick="app.toggleCall()" title="语音通话">
+                        📞 打电话
+                    </button>
                     <label class="btn-upload" title="上传图片或文件给AI分析">
                         🖼️ 识别图片
                         <input type="file" id="imageInput" accept="image/*,.pdf,.txt,.csv,.json,.md" hidden />
@@ -42,16 +116,48 @@
                 </div>
             </header>
 
-            <!-- 消息区域 -->
             <div class="messages" id="messages">
                 <div class="welcome-message">
-                    <div class="welcome-icon">🏠</div>
-                    <h2>你好！我是你的生活管家</h2>
-                    <p>我可以帮你：日程规划、收支计算、旅行方案、文档问答、生活建议</p>
+                    <div class="welcome-icon">
+                        <svg viewBox="0 0 100 100" width="80" height="80">
+                            <defs>
+                                <linearGradient id="wFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#ff4500"/>
+                                    <stop offset="30%" style="stop-color:#ff6a00"/>
+                                    <stop offset="60%" style="stop-color:#00d4ff"/>
+                                    <stop offset="100%" style="stop-color:#00ffcc"/>
+                                </linearGradient>
+                                <linearGradient id="wPetal" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#aa1100"/>
+                                    <stop offset="50%" style="stop-color:#ff4500"/>
+                                    <stop offset="100%" style="stop-color:#ff8c00"/>
+                                </linearGradient>
+                                <filter id="wGlow">
+                                    <feGaussianBlur stdDeviation="4" result="blur"/>
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <g filter="url(#wGlow)">
+                                <path d="M50 8 C56 22, 72 28, 67 48 C62 64, 56 72, 50 78 C44 72, 38 64, 33 48 C28 28, 44 22, 50 8Z" fill="url(#wPetal)" opacity="0.9"/>
+                                <path d="M50 8 C56 22, 72 28, 67 48 C62 64, 56 72, 50 78 C44 72, 38 64, 33 48 C28 28, 44 22, 50 8Z" fill="url(#wPetal)" opacity="0.88" transform="rotate(72 50 50)"/>
+                                <path d="M50 8 C56 22, 72 28, 67 48 C62 64, 56 72, 50 78 C44 72, 38 64, 33 48 C28 28, 44 22, 50 8Z" fill="url(#wPetal)" opacity="0.85" transform="rotate(144 50 50)"/>
+                                <path d="M50 8 C56 22, 72 28, 67 48 C62 64, 56 72, 50 78 C44 72, 38 64, 33 48 C28 28, 44 22, 50 8Z" fill="url(#wPetal)" opacity="0.85" transform="rotate(216 50 50)"/>
+                                <path d="M50 8 C56 22, 72 28, 67 48 C62 64, 56 72, 50 78 C44 72, 38 64, 33 48 C28 28, 44 22, 50 8Z" fill="url(#wPetal)" opacity="0.9" transform="rotate(288 50 50)"/>
+                            </g>
+                            <path d="M50 22 C54 34, 60 38, 57 50 C55 58, 52 64, 50 68 C48 64, 45 58, 43 50 C40 38, 46 34, 50 22Z" fill="url(#wFlame)" opacity="0.95"/>
+                            <circle cx="50" cy="46" r="5" fill="#fff" opacity="0.6"/>
+                            <circle cx="50" cy="46" r="2.5" fill="#00ffcc" opacity="0.9"/>
+                        </svg>
+                    </div>
+                    <h2>SYSTEM READY</h2>
+                    <p>我可以帮你：日程规划、收支计算、旅行方案、文档问答、图片生成、生活建议</p>
                     <div class="quick-actions">
                         <button class="quick-btn" onclick="sendQuick('帮我算一下每月存3000，一年后能存多少')">💰 收支计算</button>
                         <button class="quick-btn" onclick="sendQuick('现在几点了？')">🕐 时间查询</button>
-                        <button class="quick-btn" onclick="sendQuick('帮我规划一个周末出游计划')">🗺️ 旅行方案</button>
+                        <button class="quick-btn" onclick="sendQuick('帮我画一只可爱的橘猫坐在窗台上，阳光照射，温馨风格')">🎨 生成图片</button>
                         <button class="quick-btn" onclick="sendQuick('记住我喜欢吃辣')">🧠 记住偏好</button>
                     </div>
                 </div>
@@ -59,16 +165,18 @@
 
             <!-- 输入区域 -->
             <div class="input-area">
-                <!-- 图片预览条 -->
                 <div class="image-preview-bar" id="imagePreviewBar" style="display:none;">
                     <img id="imagePreviewThumb" src="" alt="preview" />
                     <span id="imagePreviewName">image.png</span>
                     <button class="btn-remove-image" onclick="app.clearImage()">✕</button>
                 </div>
                 <div class="input-wrapper">
+                    <button class="btn-voice" id="voiceBtn" onclick="toggleVoice()" title="语音输入">
+                        🎤
+                    </button>
                     <textarea
                         id="messageInput"
-                        placeholder="输入你的问题..."
+                        placeholder="输入你的问题...（点击🎤语音输入）"
                         rows="1"
                         onkeydown="handleKeyDown(event)"
                     ></textarea>
@@ -76,13 +184,101 @@
                         <span class="send-icon">➤</span>
                     </button>
                 </div>
-                <div class="input-hint">按 Enter 发送，Shift+Enter 换行</div>
+                <div class="input-hint">Enter = Send // Shift+Enter = Newline // 🎤 = Voice</div>
             </div>
         </main>
+
+        <!-- ========== 右侧面板：记忆管理 ========== -->
+        <div class="side-panel" id="memoryPanel">
+            <div class="panel-header">
+                <h3>🧠 记忆管理</h3>
+                <button class="btn-close-panel" onclick="closePanel('memoryPanel')">✕</button>
+            </div>
+            <div class="panel-body" id="memoryPanelBody">
+                <div class="panel-loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- ========== 右侧面板：向量知识库 ========== -->
+        <div class="side-panel" id="vectorPanel">
+            <div class="panel-header">
+                <h3>📊 向量知识库</h3>
+                <button class="btn-close-panel" onclick="closePanel('vectorPanel')">✕</button>
+            </div>
+            <div class="panel-body" id="vectorPanelBody">
+                <div class="panel-loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- ========== 右侧面板：数据库概览 ========== -->
+        <div class="side-panel" id="dbPanel">
+            <div class="panel-header">
+                <h3>💾 数据库概览</h3>
+                <button class="btn-close-panel" onclick="closePanel('dbPanel')">✕</button>
+            </div>
+            <div class="panel-body" id="dbPanelBody">
+                <div class="panel-loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- ========== 右侧面板：图片生成 ========== -->
+        <div class="side-panel" id="imagePanel">
+            <div class="panel-header">
+                <h3>🎨 AI 图片生成</h3>
+                <button class="btn-close-panel" onclick="closePanel('imagePanel')">✕</button>
+            </div>
+            <div class="panel-body">
+                <div class="imggen-form">
+                    <textarea id="imgPrompt" placeholder="描述你想生成的图片...&#10;例如：一只可爱的橘猫坐在窗台上，阳光照射，温馨风格" rows="3"></textarea>
+                    <select id="imgSize">
+                        <option value="1024x1024">1024×1024（方形）</option>
+                        <option value="1024x768">1024×768（横版）</option>
+                        <option value="768x1024">768×1024（竖版）</option>
+                        <option value="512x512">512×512（小图）</option>
+                    </select>
+                    <button class="btn-gen-img" onclick="generateImage()">🎨 生成图片</button>
+                </div>
+                <div id="imgGenResult"></div>
+            </div>
+        </div>
     </div>
 
-    <!-- 上传状态提示 -->
+    <!-- Toast -->
     <div class="toast" id="toast"></div>
+
+    <!-- ========== 语音通话覆盖层 ========== -->
+    <div class="call-overlay" id="callOverlay" style="display:none;">
+        <div class="call-container">
+            <div class="call-avatar-wrapper">
+                <div class="call-avatar-pulse"></div>
+                <div class="call-avatar" id="callAvatar">🏠</div>
+            </div>
+            <div class="call-status" id="callStatus">接听中...</div>
+            <div class="call-timer" id="callTimer">00:00</div>
+            <div class="call-transcript" id="callTranscript"></div>
+            <div class="call-wave" id="callWave">
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="call-actions">
+                <button class="call-action-btn mute" id="muteBtn" onclick="app.toggleMute()" title="静音">
+                    🎙️
+                </button>
+                <button class="call-action-btn speak" id="speakBtn"
+                    onmousedown="app.startSpeaking()" onmouseup="app.stopSpeaking()"
+                    ontouchstart="app.startSpeaking()" ontouchend="app.stopSpeaking()"
+                    title="按住说话">
+                    🎤
+                </button>
+                <button class="call-action-btn hangup" onclick="app.hangUp()" title="挂断">
+                    🔴
+                </button>
+            </div>
+            <div class="call-hint">按住中间按钮说话，松开发送</div>
+        </div>
+    </div>
+
+    <!-- 扫描线 CRT 效果 -->
+    <div class="scanline-overlay"></div>
 
     <script src="/app.js"></script>
 </body>

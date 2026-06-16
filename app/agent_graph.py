@@ -31,13 +31,15 @@ logger = logging.getLogger(__name__)
 class AgentGraph:
     """LangGraph Agent 编排器"""
 
-    def __init__(self, llm: Any, tool_service: ToolService):
+    def __init__(self, llm: Any, tool_service: ToolService, zhipu_llm: Any = None):
         """
         Args:
-            llm: ChatOpenAI 实例（langchain_openai）
+            llm: 主 ChatOpenAI 实例（千问 qwen-plus，用于规划 + 回答）
             tool_service: ToolService 实例
+            zhipu_llm: 智谱 ChatOpenAI 实例（glm-4-flash，用于反思）；为 None 时回退到主模型
         """
         self.llm = llm
+        self.zhipu_llm = zhipu_llm or llm  # 未配置智谱时回退到千问
         self.llm_with_tools = llm.bind_tools(TOOL_DEFINITIONS) if llm else None
         self.tool_service = tool_service
         self.graph = self._build_graph()
@@ -58,7 +60,7 @@ class AgentGraph:
         )
         builder.add_node(
             "reflection",
-            partial(reflection_node, llm=self.llm),
+            partial(reflection_node, llm=self.zhipu_llm),  # 智谱 GLM 负责反思
         )
         builder.add_node(
             "response",
@@ -72,12 +74,14 @@ class AgentGraph:
         builder.add_conditional_edges("planning", self._route_after_planning, {
             "tool_execution": "tool_execution",
             "reflection": "reflection",
+            "response": "response",
         })
 
-        # tool_execution 后：未超轮次 → planning（让 LLM 决定是否继续），超了 → reflection
+        # tool_execution 后：简单工具→直接回答，否则按轮次决定
         builder.add_conditional_edges("tool_execution", self._route_after_tools, {
             "planning": "planning",
             "reflection": "reflection",
+            "response": "response",
         })
 
         # reflection 后：重试 → planning，否则 → response
@@ -98,22 +102,36 @@ class AgentGraph:
     MAX_TOTAL_TOOLS = 4
 
     def _route_after_planning(self, state: AgentState) -> str:
-        """规划后路由：LLM 是否请求了工具调用"""
+        """规划后路由：无工具直接回答，有工具去执行"""
         llm_message = state.get("llm_message")
         if isinstance(llm_message, AIMessage):
             tool_calls = getattr(llm_message, "tool_calls", None)
             if tool_calls:
-                # 全局硬上限检查：累计工具调用太多，强制结束
+                # 全局硬上限检查
                 total_used = len(state.get("tools_used", []))
                 if total_used >= self.MAX_TOTAL_TOOLS:
                     logger.warning(f"[路由] 全局工具上限({self.MAX_TOTAL_TOOLS})已达，强制回答")
-                    return "reflection"
+                    return "response"
                 return "tool_execution"
-        return "reflection"
+        # 无工具调用，直接回答（跳过反思）
+        return "response"
+
+    # 简单工具：结果清晰，不需要反思质检
+    SIMPLE_TOOLS = {
+        "generate_image", "get_weather", "get_current_time",
+        "calculator", "translate", "web_search",
+    }
 
     def _route_after_tools(self, state: AgentState) -> str:
-        """工具执行后路由：是否还有更多工具轮次"""
+        """工具执行后路由：简单工具直接回答，复杂工具走反思"""
         tool_round = state.get("tool_round", 0)
+        tools_used = state.get("tools_used", [])
+
+        # 简单工具（图片生成、天气、时间等）结果清晰，跳过反思直接回答
+        if tools_used and all(t in self.SIMPLE_TOOLS for t in tools_used):
+            logger.info(f"[路由] 简单工具 {tools_used}，跳过反思直接回答")
+            return "response"
+
         if tool_round < MAX_TOOL_ROUNDS:
             return "planning"  # 回到 planning 让 LLM 决定
         return "reflection"

@@ -3,17 +3,49 @@ services:
     name: life-agent
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python run.py
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --log-level info
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.0"
-      - key: SERVER_HOST
-        value: "0.0.0.0"
-      - key: SERVER_WORKERS
-        value: "1"
+
+      # 主 LLM —— DeepSeek
       - key: DASHSCOPE_API_KEY
-        sync: false   # 在 Render 控制台手动填写
+        sync: false
       - key: LLM_BASE_URL
         value: "https://api.deepseek.com/v1"
       - key: LLM_MODEL
         value: "deepseek-chat"
+
+      # 智谱 GLM（反思质检 + 翻译 + 视觉备选）
+      - key: ZHIPU_API_KEY
+        sync: false
+      - key: ZHIPU_BASE_URL
+        value: "https://open.bigmodel.cn/api/paas/v4"
+      - key: ZHIPU_MODEL
+        value: "glm-4-flash"
+
+      # 硅基流动（Embedding + 图片生成 + 视觉模型 + STT）
+      - key: SILICONFLOW_API_KEY
+        sync: false
+      - key: SILICONFLOW_BASE_URL
+        value: "https://api.siliconflow.cn/v1"
+      - key: SILICONFLOW_IMAGE_MODEL
+        value: "Tongyi-MAI/Z-Image-Turbo"
+
+      # 服务器
+      - key: SERVER_HOST
+        value: "0.0.0.0"
+
+      # 并发控制
+      - key: MAX_CONCURRENT_LLM
+        value: "5"
+      - key: MAX_HISTORY_MESSAGES
+        value: "20"
+
+      # TTS 语音
+      - key: TTS_VOICE
+        value: "zh-CN-XiaoyiNeural"
+      - key: TTS_RATE
+        value: "+8%"
+      - key: TTS_PITCH
+        value: "+30Hz"

@@ -86,7 +86,7 @@ async def upload_document(
     file: UploadFile = File(...),
     user_id: str = Form(...),
 ):
-    allowed_ext = {".txt", ".md", ".csv", ".json", ".text", ".log"}
+    allowed_ext = {".txt", ".md", ".csv", ".json", ".text", ".log", ".pptx"}
     filename = file.filename or "unknown.txt"
     ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ".txt"
 

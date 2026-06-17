@@ -161,7 +161,7 @@ class RAGService:
     ) -> dict:
         """
         上传文档并建立向量索引
-        支持 .txt, .md, .csv, .json 文件
+        支持 .txt, .md, .csv, .json, .pptx 文件
         """
         if not self._initialized:
             return {"success": False, "message": "RAG 服务未初始化", "chunks": 0}
@@ -172,11 +172,38 @@ class RAGService:
         with open(file_path, "wb") as f:
             f.write(file_content)
 
-        # 读取文本
-        try:
-            text = file_content.decode("utf-8", errors="ignore")
-        except Exception:
-            text = file_content.decode("gbk", errors="ignore")
+        # 根据文件类型读取文本
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "txt"
+        text = ""
+
+        if ext == "pptx":
+            try:
+                from pptx import Presentation
+                from io import BytesIO
+                prs = Presentation(BytesIO(file_content))
+                slides = []
+                for i, slide in enumerate(prs.slides):
+                    slide_lines = []
+                    for shape in slide.shapes:
+                        if shape.has_text_frame:
+                            for para in shape.text_frame.paragraphs:
+                                t = para.text.strip()
+                                if t:
+                                    slide_lines.append(t)
+                        if shape.has_table:
+                            for row in shape.table.rows:
+                                cells = [cell.text.strip() for cell in row.cells]
+                                slide_lines.append(" | ".join(cells))
+                    if slide_lines:
+                        slides.append("\n".join(slide_lines))
+                text = "\n\n".join(slides)
+            except Exception as e:
+                return {"success": False, "message": f"PPTX 解析失败: {e}", "chunks": 0}
+        else:
+            try:
+                text = file_content.decode("utf-8", errors="ignore")
+            except Exception:
+                text = file_content.decode("gbk", errors="ignore")
 
         if not text.strip():
             return {"success": False, "message": "文件内容为空", "chunks": 0}

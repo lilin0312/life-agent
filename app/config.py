@@ -6,28 +6,28 @@ import os
 from pathlib import Path
 
 # ==================== 路径配置 ====================
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-UPLOAD_DIR = DATA_DIR / "uploads"
-VECTOR_DB_DIR = DATA_DIR / "vectordb"
-MEMORY_DB_PATH = DATA_DIR / "memory.db"
-CHAT_IMAGES_DIR = DATA_DIR / "chat_images"
+BASE_DIR = Path(__file__).resolve().parent.parent #自动定位项目根目录
+DATA_DIR = BASE_DIR / "data" 
+UPLOAD_DIR = DATA_DIR / "uploads" #用户上传文件
+VECTOR_DB_DIR = DATA_DIR / "vectordb" #RAG知识库向量数据库
+MEMORY_DB_PATH = DATA_DIR / "memory.db" #用户长期记忆sqlite库
+CHAT_IMAGES_DIR = DATA_DIR / "chat_images" #对话生成/图片上传缓存
 
 # ==================== 加载 .env 文件 ====================
-def _load_env():
+def _load_env(): #自定义简易.env 解析器
     """从 .env 文件加载配置（不覆盖已有环境变量）"""
-    env_file = BASE_DIR / ".env"
+    env_file = BASE_DIR / ".env" #读取项目根目录.env配置文件
     if not env_file.exists():
         return
     with open(env_file, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
+            if not line or line.startswith("#") or "=" not in line: #跳过注释行#、空行
                 continue
             key, _, value = line.partition("=")
             key = key.strip()
             value = value.strip()
-            if key and key not in os.environ:
+            if key and key not in os.environ: #只把系统不存在的环境变量写入os.environ，优先级：系统环境变量 > .env 本地文件（生产部署密钥不会被本地配置覆盖，安全规范）
                 os.environ[key] = value
 
 _load_env()
@@ -56,27 +56,32 @@ SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
 SERVER_PORT = int(os.getenv("PORT", os.getenv("SERVER_PORT", "8000")))
 SERVER_WORKERS = int(os.getenv("SERVER_WORKERS", "1"))
 
-# ==================== 硅基流动配置 ====================
+# ==================== 硅基流动配置（图像生成+语言大模型） ====================
 SILICONFLOW_API_KEY = os.getenv("SILICONFLOW_API_KEY", "")
 SILICONFLOW_BASE_URL = os.getenv("SILICONFLOW_BASE_URL", "https://api.siliconflow.cn/v1")
 SILICONFLOW_IMAGE_MODEL = os.getenv("SILICONFLOW_IMAGE_MODEL", "Tongyi-MAI/Z-Image-Turbo")
 SILICONFLOW_SPEECH_MODEL = os.getenv("SILICONFLOW_SPEECH_MODEL", "FunAudioLLM/SenseVoiceSmall")
 
+# ==================== MCP 配置 ====================
+# MCP 服务器列表，JSON 格式。示例：
+# [{"name":"filesystem","command":"npx","args":["-y","@modelcontextprotocol/server-filesystem","C:/Users/李琳/Desktop"]}]
+MCP_SERVERS_JSON = os.getenv("MCP_SERVERS", "[]")
+
 # ==================== TTS 语音合成配置 ====================
 TTS_VOICE = os.getenv("TTS_VOICE", "zh-CN-XiaoyiNeural")
-TTS_RATE = os.getenv("TTS_RATE", "+8%")
-TTS_PITCH = os.getenv("TTS_PITCH", "+30Hz")
+TTS_RATE = os.getenv("TTS_RATE", "+8%") #语速
+TTS_PITCH = os.getenv("TTS_PITCH", "+30Hz") #音速
 
 # ==================== 并发控制 ====================
 MAX_CONCURRENT_LLM = int(os.getenv("MAX_CONCURRENT_LLM", "10"))  # 最大并发LLM请求
 MAX_HISTORY_MESSAGES = int(os.getenv("MAX_HISTORY_MESSAGES", "20"))  # 上下文消息上限
 
 # ==================== RAG 配置 ====================
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "500"))
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50"))
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "500")) #文本分块大小
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50")) #重叠长度
 EMBEDDING_MODEL = os.getenv(
     "EMBEDDING_MODEL",
-    "shibing624/text2vec-base-chinese",
+    "shibing624/text2vec-base-chinese", #嵌入向量模型
 )
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))  # 检索返回文档数
 
@@ -84,7 +89,7 @@ RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))  # 检索返回文档数
 MEMORY_VECTOR_COLLECTION = os.getenv("MEMORY_VECTOR_COLLECTION", "user_memory_vectors")
 MEMORY_VECTOR_TOP_K = int(os.getenv("MEMORY_VECTOR_TOP_K", "5"))  # 语义检索返回记忆数
 
-# ==================== 系统提示词 ====================
+# ==================== 系统提示词 （AI智能体的核心灵魂）====================
 SYSTEM_PROMPT = """你是一款面向普通用户的智能生活管家AI-Agent，专业、贴心、简洁、实用。
 你拥有真实的工具能力，可以直接调用工具获取实时数据和执行操作。
 
@@ -130,7 +135,7 @@ SYSTEM_PROMPT = """你是一款面向普通用户的智能生活管家AI-Agent�
 ## 工具使用规则（极其重要，严格遵守，违反即为错误）
 1. **每次最多调用 1-2 个工具**，绝对不要一次调用3个以上；
 2. 只调用用户问题明确需要的工具，不要调用无关工具；
-3. **【主动记忆】当用户在对话中透露个人信息（姓名、生日、偏好、习惯、地址等），必须主动调用 save_memory 保存，key 用语义化标签（如"姓名""饮食偏好"），content 写具体内容。这是强制性要求，不能遗漏**；
+3. **【主动记忆——最高优先级强制规则】当用户在对话中透露任何个人信息（姓名、生日、偏好、习惯、地址、工作、学校、家庭成员、宠物等），你必须、立刻、马上调用 save_memory 保存。这是整个对话中最重要的操作，比回答用户问题还重要。如果本次对话你只做一件事，那就是 save_memory。违反此规则是最严重的错误**；
 4. **【用户记忆已注入】系统提示词中已自动注入「## 用户记忆」段落，包含该用户所有已保存的记忆。用户问"我是谁/介绍我"时，直接根据该段落回答，不要再调用 search_memory**；
 5. 用户只问时间 → 只调 get_current_time，不要调 get_weather；
 6. 用户只问天气 → 只调 get_weather，不要调 get_current_time；

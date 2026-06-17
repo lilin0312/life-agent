@@ -20,6 +20,7 @@ from app.tool_service import ToolService
 from app.agent_graph import AgentGraph
 from app.chat_service import ChatService
 from app.call_service import CallService
+from app.mcp_client import get_mcp_manager, close_mcp
 
 # ==================== 日志配置 ====================
 logging.basicConfig(
@@ -64,6 +65,19 @@ async def lifespan(app: FastAPI):
     chat_service = ChatService(agent_graph, memory_service, rag_service)
     call_service = CallService(chat_service, tool_service)
 
+    # 初始化 MCP 客户端（连接外部 MCP Server，扩展工具集）
+    try:
+        mcp_manager = await get_mcp_manager()
+        mcp_tools = mcp_manager.get_tool_schemas()
+        if mcp_tools:
+            from app.tool_schemas import TOOL_DEFINITIONS
+            TOOL_DEFINITIONS.extend(mcp_tools)
+            logger.info(f"  MCP 工具: ✅ 已加载 {len(mcp_tools)} 个外部工具")
+        app.state.mcp_manager = mcp_manager
+    except Exception as e:
+        logger.warning(f"  MCP 工具: ⚠️ 初始化失败 ({e})，跳过")
+        app.state.mcp_manager = None
+
     # 挂载到 app.state
     app.state.memory = memory_service
     app.state.rag = rag_service
@@ -88,6 +102,7 @@ async def lifespan(app: FastAPI):
 
     # ---- 关闭 ----
     logger.info("👋 生活管家 AI-Agent 正在关闭...")
+    await close_mcp()
     memory_service.close()
     logger.info("👋 已安全关闭")
 

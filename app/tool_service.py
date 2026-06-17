@@ -137,6 +137,9 @@ class ToolService:
         try:
             handler = getattr(self, f"_tool_{tool_name}", None)
             if handler is None:
+                # 检查是否为 MCP 外部工具
+                if tool_name.startswith("mcp_"):
+                    return await self._execute_mcp_tool(tool_name, args)
                 available = [
                     "get_weather", "calculator", "get_current_time",
                     "save_memory", "search_memory", "search_documents",
@@ -527,6 +530,31 @@ class ToolService:
                 return f"**{path}**\n\n{content[:20000]}"
             except Exception as e:
                 return f"Word 文件读取失败: {e}"
+
+        # PPTX 文件
+        if ext == ".pptx":
+            try:
+                from pptx import Presentation
+                prs = Presentation(real)
+                slides_text = []
+                for i, slide in enumerate(prs.slides):
+                    lines = [f"--- 第{i+1}页 ---"]
+                    for shape in slide.shapes:
+                        if shape.has_text_frame:
+                            for para in shape.text_frame.paragraphs:
+                                text = para.text.strip()
+                                if text:
+                                    lines.append(text)
+                        if shape.has_table:
+                            table = shape.table
+                            for row in table.rows:
+                                cells = [cell.text.strip() for cell in row.cells]
+                                lines.append(" | ".join(cells))
+                    slides_text.append("\n".join(lines))
+                content = "\n\n".join(slides_text)
+                return f"**{path}** ({len(prs.slides)}页)\n\n{content[:20000]}"
+            except Exception as e:
+                return f"PPTX 读取失败: {e}"
 
         # 普通文本文件
         try:
@@ -1783,6 +1811,20 @@ class ToolService:
         time.sleep(0.1)
 
         return f"✅ 已粘贴文字到窗口 ({len(text)}字)"
+
+    # ==================== MCP 工具代理 ====================
+
+    async def _execute_mcp_tool(self, tool_name: str, args: dict) -> dict:
+        """执行 MCP 外部工具——将调用转发到外部 MCP Server"""
+        try:
+            from app.mcp_client import get_mcp_manager
+            manager = await get_mcp_manager()
+            result = await manager.call_tool(tool_name, args)
+            logger.info(f"MCP工具结果 [{tool_name}]: {str(result)[:200]}")
+            return {"content": str(result), "need_confirm": False}
+        except Exception as e:
+            logger.error(f"MCP工具异常 [{tool_name}]: {e}")
+            return {"content": f"MCP工具执行出错: {e}", "need_confirm": False}
 
     # ==================== 路径处理 ====================
 
